@@ -74,8 +74,14 @@ void processIsPrime(isPrimeFunctionPointer primeFunction, const bool &enableTimm
 {
     unsigned long number;
 
-    cout << "Type a number and press enter to check if it is not a prime number: ";
+    cout << "Type a number greater than 1 and press enter to check if it is not a prime number: ";
     cin >> number;
+
+    if (number <= 1)
+    {
+        cout << "The number must be greater than 1." << endl;
+        return;
+    }
 
     bool isPrime = false;
 
@@ -125,7 +131,7 @@ int main()
                     processIsPrime(&isPrimeByTrialDivision, enableTimming);
                     break;
                 case SlowIsPrime:
-                    processIsPrime(&isPrimeSlower, enableTimming);
+                    processIsPrime(&isPrime, enableTimming);
                     break;
                 case ToggleEnableTimming:
                     toggleEnableTimming(enableTimming);
