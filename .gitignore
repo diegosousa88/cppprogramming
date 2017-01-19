@@ -12,6 +12,10 @@
 *.so
 *.dylib
 *.dll
+*Makefile
+*.qmake*
+*-Debug*
+*-Release*
 
 # Fortran module files
 *.mod
