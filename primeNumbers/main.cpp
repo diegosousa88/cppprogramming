@@ -2,8 +2,19 @@
 #include <math.h>
 #include <cstdio>
 #include <ctime>
+#include <vector>
 
 using namespace std;
+
+enum MenuSelection
+{
+    Exit,
+    IsPrimeByTrialDivision,
+    IsPrimeRegular,
+    ListOfPrimeByEratosthenes,
+    ToggleEnableTimming,
+    InvalidSelection
+};
 
 void displayMenu()
 {
@@ -13,13 +24,34 @@ void displayMenu()
     system("clear");
 #endif
     cout << "Select which prime algorithm to use and press enter:" << endl << endl;
-    cout << "Type 1 to check prime using trial division" << endl;
-    cout << "Type 2 to use regular algorithm (slower)" << endl;
-    cout << "Type 3 to toggle enable timming" << endl;
-    cout << "------------------------------------------" << endl;
+    cout << "Type " << static_cast<int>(IsPrimeByTrialDivision)
+         << " to check prime using trial division" << endl;
+    cout << "Type " << static_cast<int>(IsPrimeRegular)
+         << " to use regular algorithm (slower)" << endl;
+    cout << "Type " << static_cast<int>(ListOfPrimeByEratosthenes)
+         << " to list prime numbers using Sieve of Eratosthenes" << endl;
+    cout << "Type " << static_cast<int>(ToggleEnableTimming)
+         << " to toggle enable timming" << endl;
+    cout << "--------------------------------------------------------" << endl;
     cout << "Type 0 to exit application" << endl;
     cout << endl;
     cout << "Type here your choice: ";
+}
+
+template<typename TRet, typename TFunc, typename TParams>
+TRet executeWithTimming(TFunc func, TParams params)
+{
+    TRet result;
+    clock_t startTime;
+    double executionDuration;
+    startTime = clock();
+
+    result = func(params);
+
+    executionDuration = (clock() - startTime) / (double)CLOCKS_PER_SEC;
+    cout << "Function executed in " << executionDuration << " seconds" << endl;
+
+    return result;
 }
 
 bool isPrime(unsigned long number)
@@ -46,26 +78,71 @@ bool isPrimeByTrialDivision(unsigned long number)
     return !isNotPrime;
 }
 
-void toggleEnableTimming(bool &enableTimming)
+vector<unsigned long> generatePrimeNumbersBySieveEratosthenes(unsigned long maxNumber)
 {
-    enableTimming = !enableTimming;
-    cout << "Enable timming configuration " << ((enableTimming) ? "enabled" : "disabled") << endl;
+    cout << "Executing " << __FUNCTION__ << endl;
+
+    vector<unsigned long> primeNumbers;
+    for (unsigned int i = 0; i < maxNumber; ++i)
+        primeNumbers.push_back(1);
+
+    primeNumbers[0] = 0;
+    primeNumbers[1] = 0;
+
+    for (unsigned long i = 2; i <= maxNumber; ++i)
+    {
+        if (primeNumbers[i] == 1)
+        {
+            for (unsigned long j = 2; i * j <= maxNumber; ++j)
+                primeNumbers[i * j] = 0;
+        }
+    }
+
+    return primeNumbers;
 }
 
-template<typename TRet, typename TFunc, typename TParams>
-TRet executeWithTimming(TFunc func, TParams params)
+void displayList(vector<unsigned long> list, string message, string separator = " | ")
 {
-    TRet result;
-    clock_t startTime;
-    double executionDuration;
-    startTime = clock();
+    cout << message << endl;
 
-    result = func(params);
+    bool addSeparator = false;
+    for (unsigned long i = 0; i < list.size(); ++i)
+    {
+        if (list.at(i) == 0)
+            continue;
 
-    executionDuration = (clock() - startTime) / (double)CLOCKS_PER_SEC;
-    cout << "Function executed in " << executionDuration << " seconds" << endl;
+        if (addSeparator)
+            cout << separator;
 
-    return result;
+        cout << i;
+
+        addSeparator = true;
+    }
+    cout << endl;
+}
+
+typedef vector<unsigned long> (* generatePrimeNumbers)(unsigned long);
+
+void processListPrimeNumbers(const bool &enableTimming)
+{
+    vector<unsigned long> primeNumbers;
+    unsigned long maxNumber;
+
+    cout << "List prime numbers until number: ";
+    cin >> maxNumber;
+
+    if (maxNumber <= 1)
+    {
+        cout << "The number must be greater than 1." << endl;
+        return ;
+    }
+
+    if (enableTimming)
+        primeNumbers = executeWithTimming<vector<unsigned long>, generatePrimeNumbers, unsigned long>(&generatePrimeNumbersBySieveEratosthenes, maxNumber);
+    else
+        primeNumbers = generatePrimeNumbersBySieveEratosthenes(maxNumber);
+
+    displayList(primeNumbers, "Listing prime numbers...");
 }
 
 typedef bool (*isPrimeFunctionPointer)(unsigned long);
@@ -94,14 +171,11 @@ void processIsPrime(isPrimeFunctionPointer primeFunction, const bool &enableTimm
     else cout << number << " is not a prime number" << endl;
 }
 
-enum MenuSelection
+void toggleEnableTimming(bool &enableTimming)
 {
-    Exit,
-    FastIsPrime,
-    SlowIsPrime,
-    ToggleEnableTimming,
-    InvalidSelection
-};
+    enableTimming = !enableTimming;
+    cout << "Enable timming configuration " << ((enableTimming) ? "enabled" : "disabled") << endl;
+}
 
 int main()
 {
@@ -120,18 +194,21 @@ int main()
         displayMenu();
         cin >> selectionAsNumber;
 
-        if (selectionAsNumber >= 0 && selectionAsNumber <= 3)
+        if (selectionAsNumber >= 0 && selectionAsNumber <= 4)
         {
             selection = static_cast<MenuSelection>(selectionAsNumber);
 
             if (selection != Exit)
             {
                 switch (selection) {
-                case FastIsPrime:
+                case IsPrimeByTrialDivision:
                     processIsPrime(&isPrimeByTrialDivision, enableTimming);
                     break;
-                case SlowIsPrime:
+                case IsPrimeRegular:
                     processIsPrime(&isPrime, enableTimming);
+                    break;
+                case ListOfPrimeByEratosthenes:
+                    processListPrimeNumbers(enableTimming);
                     break;
                 case ToggleEnableTimming:
                     toggleEnableTimming(enableTimming);
