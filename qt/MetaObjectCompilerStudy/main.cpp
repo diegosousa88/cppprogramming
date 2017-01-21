@@ -96,8 +96,6 @@ bool callMethodFromAccountViaMetadata(Account *acct, const char *methodSignature
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
-    a.setApplicationName("Meta Object Compiler");
-    a.setApplicationVersion("1.0.0");
 
     Customer *cust = new Customer(15, "Diego de Sousa Oliveira", &a);
     cust->createAcct(2000);
