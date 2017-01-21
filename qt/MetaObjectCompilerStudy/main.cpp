@@ -7,7 +7,7 @@ using namespace std;
 
 void displayObjectData(const Customer *cust)
 {
-    qDebug() << "Customer ID: " << cust->CustomerId() << endl
+    qDebug().nospace() << "Customer ID: " << cust->CustomerId() << endl
              << "Name: " << cust->Name() << endl
              << "Class: " << QMetaEnum::fromType<Customer::CustomerClass>().valueToKey(cust->Class()) << endl
              << "Balance: " << cust->Acct()->Balance() << endl;
@@ -15,19 +15,19 @@ void displayObjectData(const Customer *cust)
 
 void displayClassMetadata(const Customer *cust)
 {
-    qDebug() << "### Class metadata ###" << endl;
-    qDebug() << "Class name: " << cust->metaObject()->className();
-    qDebug() << "Class infos (" << cust->metaObject()->classInfoCount() << ")";
+    qDebug().nospace() << "### Class metadata ###" << endl;
+    qDebug().nospace() << "Class name: " << cust->metaObject()->className();
+    qDebug().nospace() << "Class infos (" << cust->metaObject()->classInfoCount() << ")";
     for (int i = 0; i < cust->metaObject()->classInfoCount(); ++i)
     {
-        qDebug() << "Info key: " << cust->metaObject()->classInfo(i).name()
+        qDebug().nospace() << "Info key: " << cust->metaObject()->classInfo(i).name()
                  << " -> Info value: " << cust->metaObject()->classInfo(i).value();
     }
 
-    qDebug() << "Properties (" << cust->metaObject()->propertyCount() << ")" << endl;
+    qDebug().nospace() << "Properties (" << cust->metaObject()->propertyCount() << ")";
     for (int i = 0; i < cust->metaObject()->propertyCount(); ++i)
     {
-        qDebug() << "Name: " << cust->metaObject()->property(i).name() << endl
+        qDebug().nospace() << "Name: " << cust->metaObject()->property(i).name() << endl
                  << "Has notify signal: " << cust->metaObject()->property(i).hasNotifySignal() << endl
                  << "Is constant: " << cust->metaObject()->property(i).isConstant() << endl
                  << "Is designable: " << cust->metaObject()->property(i).isDesignable() << endl
@@ -96,35 +96,38 @@ bool callMethodFromAccountViaMetadata(Account *acct, const char *methodSignature
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
+    a.setApplicationName("Meta Object Compiler");
+    a.setApplicationVersion("1.0.0");
 
     Customer *cust = new Customer(15, "Diego de Sousa Oliveira", &a);
     cust->createAcct(2000);
     cust->setClass(Customer::Gold);
 
-    qDebug() << "### Object created ###" << endl;
+    qDebug().nospace() << "### Object created ###" << endl;
     displayObjectData(cust);
     displayClassMetadata(cust);
 
     // Calling withdraw method via metadata.
 //    bool withdrawResult = callMethodViaMetadata<bool, Account, double>(cust->Acct(), "withdraw(double)", 1000.5);
     bool withdrawResult = callMethodFromAccountViaMetadata(cust->Acct(), "withdraw(double)", 1000.5);
-
-    qDebug() << "Withdraw succeeds: " << withdrawResult << endl;
+    qDebug().nospace() << "Withdraw succeeds: " << withdrawResult << endl;
     displayObjectData(cust);
 
     // Changing the Customer's Class property from a generic QObject
     QObject *obj = cust;
     obj->setProperty("Class", "Platinum");
 
-    qDebug() << "New class property changed through a generic QObject: "
+    qDebug().nospace() << "New class property changed through a generic QObject: "
              << QMetaEnum::fromType<Customer::CustomerClass>().valueToKey(cust->Class());
 
     // Creating a dynamic property in object on the fly (creates if does not find a key. E.g.: NewDynamicProperty)
     obj->setProperty("NewDynamicProperty", "Value of new dynamic property created on the fly");
-    qDebug() << "New property value created on the fly: " << obj->property("NewDynamicProperty").value<QString>();
+    qDebug().nospace() << "New property value created on the fly: " << obj->property("NewDynamicProperty").value<QString>();
 
-    // Deposit more money normally
-    cust->Acct()->deposit(1000);
+    // Calling deposit method via metadata.
+    bool depositResult = callMethodFromAccountViaMetadata(cust->Acct(), "deposit(double)", 1000);
+    qDebug().nospace() << "Deposit succeeds: " << depositResult << endl;
+    displayObjectData(cust);
 
     return a.exec();
 }

@@ -26,4 +26,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 HEADERS += \
     account.h \
-    customer.h
+    customer.h \
+    version.h
+
+win32: RC_FILE = resources.rc
