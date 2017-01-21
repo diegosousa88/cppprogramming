@@ -21,7 +21,7 @@ class Customer : public QObject
 public:
     explicit Customer(QObject *parent = 0);
     explicit Customer(int customerId, QString name, QObject *parent = 0);
-    Customer(const Customer& obj);
+    explicit Customer(const Customer& obj);
     ~Customer();
 
     int CustomerId() const;

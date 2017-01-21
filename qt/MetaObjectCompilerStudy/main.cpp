@@ -5,20 +5,16 @@
 
 using namespace std;
 
-int main(int argc, char *argv[])
+void displayObjectData(const Customer *cust)
 {
-    QCoreApplication a(argc, argv);
-
-    Customer *cust = new Customer(15, "Diego de Sousa Oliveira", &a);
-    cust->createAcct(2000);
-    cust->setClass(Customer::Gold);
-
-    qDebug() << "### Object created ###" << endl;
     qDebug() << "Customer ID: " << cust->CustomerId() << endl
              << "Name: " << cust->Name() << endl
              << "Class: " << QMetaEnum::fromType<Customer::CustomerClass>().valueToKey(cust->Class()) << endl
              << "Balance: " << cust->Acct()->Balance() << endl;
+}
 
+void displayClassMetadata(const Customer *cust)
+{
     qDebug() << "### Class metadata ###" << endl;
     qDebug() << "Class name: " << cust->metaObject()->className();
     qDebug() << "Class infos (" << cust->metaObject()->classInfoCount() << ")";
@@ -66,22 +62,55 @@ int main(int argc, char *argv[])
         // As well as the creation of RESET Q_PROPERTY allows me to reset class property's value via metadata.
 //        cust->metaObject()->property(i).reset(cust);
     }
+}
+
+// TODO: Does not work yet! Suspecting issue with Q_RETURN_ARG and Q_ARG macros
+template<typename TRet, typename TObj, typename TArg>
+TRet callMethodViaMetadata(TObj *obj, const char *methodSignature, TArg arg)
+{
+    TRet methodResult;
+
+    QByteArray methodSignNorm = QMetaObject::normalizedSignature(methodSignature);
+    int methodIdx = obj->metaObject()->indexOfMethod(methodSignNorm);
+    QMetaMethod method = obj->metaObject()->method(methodIdx);
+    bool success = method.invoke(obj, Qt::DirectConnection, Q_RETURN_ARG(TRet, methodResult), Q_ARG(TArg, arg));
+    // Force an exception here to not return an inconsistent result.
+    if (!success) throw;
+
+    return methodResult;
+}
+
+bool callMethodFromAccountViaMetadata(Account *acct, const char *methodSignature, double amount)
+{
+    bool methodResult;
+
+    QByteArray methodSignNorm = QMetaObject::normalizedSignature(methodSignature);
+    int methodIdx = acct->metaObject()->indexOfMethod(methodSignNorm);
+    QMetaMethod method = acct->metaObject()->method(methodIdx);
+    if (method.invoke(acct, Qt::DirectConnection, Q_RETURN_ARG(bool, methodResult), Q_ARG(double, amount)))
+        return methodResult;
+    else
+        return false;
+}
+
+int main(int argc, char *argv[])
+{
+    QCoreApplication a(argc, argv);
+
+    Customer *cust = new Customer(15, "Diego de Sousa Oliveira", &a);
+    cust->createAcct(2000);
+    cust->setClass(Customer::Gold);
+
+    qDebug() << "### Object created ###" << endl;
+    displayObjectData(cust);
+    displayClassMetadata(cust);
 
     // Calling withdraw method via metadata.
-    bool withdrawResult = false;
-    QByteArray withdrawMetSign = QMetaObject::normalizedSignature("withdraw(double)");
-    int withdrawIdx = cust->Acct()->metaObject()->indexOfMethod(withdrawMetSign);
-    QMetaMethod withdrawMet = cust->Acct()->metaObject()->method(withdrawIdx);
-    withdrawMet.invoke(cust->Acct()
-                       , Qt::DirectConnection
-                       , Q_RETURN_ARG(bool, withdrawResult)
-                       , Q_ARG(double, 1000.5));
+//    bool withdrawResult = callMethodViaMetadata<bool, Account, double>(cust->Acct(), "withdraw(double)", 1000.5);
+    bool withdrawResult = callMethodFromAccountViaMetadata(cust->Acct(), "withdraw(double)", 1000.5);
 
-    qDebug() << "Withdraw method signature" << withdrawMetSign << endl
-             << "Withdraw succeeds: " << withdrawResult << endl
-             << "Customer ID: " << cust->CustomerId() << endl
-             << "Class: " << QMetaEnum::fromType<Customer::CustomerClass>().valueToKey(cust->Class()) << endl
-             << "Balance: " << cust->Acct()->Balance() << endl;
+    qDebug() << "Withdraw succeeds: " << withdrawResult << endl;
+    displayObjectData(cust);
 
     // Changing the Customer's Class property from a generic QObject
     QObject *obj = cust;

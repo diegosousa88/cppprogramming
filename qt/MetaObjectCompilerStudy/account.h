@@ -11,7 +11,7 @@ class Account : public QObject
 public:
     explicit Account(QObject *parent = 0);
     explicit Account(double amount, QObject *parent = 0);
-    Account(const Account &obj);
+    explicit Account(const Account &other);
     ~Account();
 
     int AccountId() const;

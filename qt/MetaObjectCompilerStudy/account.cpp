@@ -6,7 +6,12 @@ Account::Account(double amount, QObject *parent) : QObject(parent)
   , m_AccountId(0)
   , m_Balance(amount) { }
 
-Account::Account(const Account &obj) { }
+Account::Account(const Account &other)
+    : Account()
+{
+    m_AccountId = other.AccountId();
+    m_Balance = other.Balance();
+}
 
 Account::~Account() { }
 

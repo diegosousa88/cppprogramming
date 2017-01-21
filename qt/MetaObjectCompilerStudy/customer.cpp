@@ -1,6 +1,7 @@
 #include "customer.h"
 
-Customer::Customer(QObject *parent) : Customer(0, "", parent) { }
+Customer::Customer(QObject *parent)
+    : Customer(0, "", parent) { }
 
 Customer::Customer(int customerId, QString name, QObject *parent)
     : QObject(parent)
@@ -9,7 +10,14 @@ Customer::Customer(int customerId, QString name, QObject *parent)
   , m_Class(None)
   , m_Acct(nullptr) { }
 
-Customer::Customer(const Customer& obj) { }
+Customer::Customer(const Customer &other)
+    : Customer()
+{
+    m_CustomerId = other.CustomerId();
+    m_Name = other.Name();
+    m_Class = other.Class();
+    m_Acct = other.Acct();
+}
 
 Customer::~Customer()
 {
