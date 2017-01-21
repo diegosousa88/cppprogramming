@@ -80,7 +80,7 @@ TRet callMethodViaMetadata(TObj *obj, const char *methodSignature, TArg arg)
     return methodResult;
 }
 
-bool callMethodFromAccountViaMetadata(Account *acct, const char *methodSignature, double amount)
+bool callMethodFromAccountViaReflection(Account *acct, const char *methodSignature, double amount)
 {
     bool methodResult;
 
@@ -105,9 +105,9 @@ int main(int argc, char *argv[])
     displayObjectData(cust);
     displayClassMetadata(cust);
 
-    // Calling withdraw method via metadata.
+    // Calling withdraw method via reflection.
 //    bool withdrawResult = callMethodViaMetadata<bool, Account, double>(cust->Acct(), "withdraw(double)", 1000.5);
-    bool withdrawResult = callMethodFromAccountViaMetadata(cust->Acct(), "withdraw(double)", 1000.5);
+    bool withdrawResult = callMethodFromAccountViaReflection(cust->Acct(), "withdraw(double)", 1000.5);
     qDebug().nospace() << "Withdraw succeeds: " << withdrawResult << endl;
     displayObjectData(cust);
 
@@ -122,8 +122,8 @@ int main(int argc, char *argv[])
     obj->setProperty("NewDynamicProperty", "Value of new dynamic property created on the fly");
     qDebug().nospace() << "New property value created on the fly: " << obj->property("NewDynamicProperty").value<QString>();
 
-    // Calling deposit method via metadata.
-    bool depositResult = callMethodFromAccountViaMetadata(cust->Acct(), "deposit(double)", 1000);
+    // Calling deposit method via reflection.
+    bool depositResult = callMethodFromAccountViaReflection(cust->Acct(), "deposit(double)", 1000);
     qDebug().nospace() << "Deposit succeeds: " << depositResult << endl;
     displayObjectData(cust);
 
